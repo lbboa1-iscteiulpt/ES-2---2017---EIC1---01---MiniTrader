@@ -85,7 +85,7 @@ public class MicroServer implements MicroTraderServer {
 	/**
 	 * Name of the XML file where the session will be saved
 	 */
-	private String docName = "MicroTraderPersistence(US) " +  DateFormat.getInstance().format(System.currentTimeMillis()) +".xml";
+	private String docName = "MicroTraderPersistence(US) " +  System.currentTimeMillis() +".xml";
 	
 	/** The value is {@value #EMPTY} */
 	public static final int EMPTY = 0;

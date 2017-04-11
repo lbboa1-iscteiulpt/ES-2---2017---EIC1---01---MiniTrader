@@ -127,7 +127,7 @@ public class MicroServerTest {
 	
 	@After
 	public void tearDown(){
-		File a = new File(ms.getDocName());
+		File a = new File(ms.getDocDir()+ms.getDocName());
 		if(a.exists()){
 			a.delete();
 		}
