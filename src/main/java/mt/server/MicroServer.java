@@ -78,7 +78,6 @@ public class MicroServer implements MicroTraderServer {
 	
 	/**
 	 * Name of the XML file where the session will be saved
-	 * 
 	 */
 	private String docName = "MicroTraderPersistence(US) " +  DateFormat.getInstance().format(System.currentTimeMillis()) +".xml";
 	
@@ -454,12 +453,6 @@ public class MicroServer implements MicroTraderServer {
 	public String getDocName() {
 		return docName;
 	}
-
-	public void setDocName(String docName) {
-		this.docName = docName;
-	}
-	
-	
 	
 	
 
