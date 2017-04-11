@@ -79,6 +79,8 @@ public class MicroServerTest {
 	public void setup(){
 		ms = new MicroServer();
 		
+		ms.setDocName(System.getProperty("user.dir")+"/src/test/resources/"+ms.getDocName());
+		
 		when(msg1.getType()).thenReturn(Type.CONNECTED);
 		when(msg1.getOrder()).thenReturn(null);
 		when(msg1.getSenderNickname()).thenReturn("userA");

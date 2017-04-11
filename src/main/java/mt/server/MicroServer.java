@@ -453,6 +453,13 @@ public class MicroServer implements MicroTraderServer {
 	public String getDocName() {
 		return docName;
 	}
+	/**	
+	 * @param docName the new name of the XML file where the session's transactions are saved
+	 */
+	public void setDocName(String docName) {
+		this.docName = docName;
+	}
+	
 	
 	
 
