@@ -18,6 +18,7 @@ import static org.mockito.Mockito.*;
 
 import java.io.File;
 
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
@@ -79,6 +80,9 @@ public class MicroServerTest {
 	public void setup(){
 		ms = new MicroServer();
 		
+		
+		ms.setDocName(System.getProperty("user.dir")+"/src/test/resources/"+ ms.getDocName());
+
 		when(msg1.getType()).thenReturn(Type.CONNECTED);
 		when(msg1.getOrder()).thenReturn(null);
 		when(msg1.getSenderNickname()).thenReturn("userA");
@@ -124,10 +128,10 @@ public class MicroServerTest {
 	
 	@After
 	public void tearDown(){
-		File a = new File(ms.getDocName());
-		if(a.exists()){
-			a.delete();
-		}
+//		File a = new File(ms.getDocName());
+//		if(a.exists()){
+//			a.delete();
+//		}
 		ms = null;
 		serverComm = null;
 	}
