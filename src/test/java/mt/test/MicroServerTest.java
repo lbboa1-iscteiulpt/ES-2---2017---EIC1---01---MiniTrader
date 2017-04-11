@@ -12,8 +12,22 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+
+import java.io.File;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+
 import org.mockito.runners.MockitoJUnitRunner;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
 /**
  * Test Class for MicroServer
@@ -110,6 +124,10 @@ public class MicroServerTest {
 	
 	@After
 	public void tearDown(){
+		File a = new File(ms.getDocName());
+		if(a.exists()){
+			a.delete();
+		}
 		ms = null;
 		serverComm = null;
 	}
@@ -181,6 +199,30 @@ public class MicroServerTest {
 		ms.start(serverComm);
 		
 		verify(serverComm, atLeastOnce()).sendError(msg1.getSenderNickname(), "The user " + msg1.getSenderNickname() + " is already connected.");
+	}
+	
+	@Test
+	public void testPersistency() throws Exception {
+		when(serverComm.getNextMessage()).thenReturn(msg1).thenReturn(msg2).thenReturn(msg3).thenReturn(msg4).thenReturn(null);
+		ms.start(serverComm);
+	
+
+		File inputFile = new File(ms.getDocName());
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.parse(inputFile);
+        doc.getDocumentElement().normalize();
+        
+        XPathFactory xpathFactory = XPathFactory.newInstance();
+        XPath xpath = xpathFactory.newXPath();
+        XPathExpression expr = xpath.compile("/XML/Order/@Type");
+        NodeList nl = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
+        
+        assertEquals("Sell", nl.item(0).getFirstChild().getNodeValue());
+        assertEquals("Buy", nl.item(1).getFirstChild().getNodeValue());
+       
+        
+        
 	}
 	
 //	@Test
