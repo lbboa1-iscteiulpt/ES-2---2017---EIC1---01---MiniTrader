@@ -2,6 +2,7 @@ package mt.server;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.nio.file.Files;
 import java.sql.Date;
 import java.sql.Time;
 import java.text.DateFormat;
@@ -75,6 +76,11 @@ public class MicroServer implements MicroTraderServer {
 	 * Order Server ID
 	 */
 	private static int id = 1;
+	
+	/**
+	 *  Name of the dir where the XML file will be saved
+	 */
+	private String docDir = System.getProperty("user.dir")+"/src/main/resources/";
 	
 	/**
 	 * Name of the XML file where the session will be saved
@@ -280,9 +286,10 @@ public class MicroServer implements MicroTraderServer {
 	private void logOrder(Order o) {
 		try {
 			LOGGER.log(Level.INFO, "Adding Order to XML File");
-			
+			LOGGER.log(Level.INFO, "File Location" + docDir+docName);
 			Document doc;
-			File inputFile = new File(docName);
+			File inputFile = new File(docDir+docName);
+			
 			if(!inputFile.exists()){
 				inputFile.createNewFile();
 				DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -312,7 +319,7 @@ public class MicroServer implements MicroTraderServer {
 	        n.appendChild(newOrder);
 	        Transformer transformer = TransformerFactory.newInstance().newTransformer();
 	        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-	        StreamResult result = new StreamResult(new FileOutputStream(docName));
+	        StreamResult result = new StreamResult(new FileOutputStream(docDir+docName));
 	        DOMSource source = new DOMSource(doc);
 	        transformer.transform(source, result);
 	        LOGGER.log(Level.INFO,"ADDED ELEMENT TO XML");
@@ -453,12 +460,24 @@ public class MicroServer implements MicroTraderServer {
 	public String getDocName() {
 		return docName;
 	}
+	
 	/**	
-	 * @param docName the new name of the XML file where the session's transactions are saved
+	 * @param docDir the new name of the directory where the XML file will be saved
 	 */
-	public void setDocName(String docName) {
-		this.docName = docName;
+	public void setDocDir(String docDir) {
+		this.docDir = docDir;
 	}
+	
+	/**
+	 * 
+	 * @return docDir the name of the directory where the XML file will be saved
+	 */
+
+	public String getDocDir() {
+		return docDir;
+	}
+	
+	
 	
 	
 	

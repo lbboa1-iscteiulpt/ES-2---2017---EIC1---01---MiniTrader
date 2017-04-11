@@ -79,7 +79,8 @@ public class MicroServerTest {
 	public void setup(){
 		ms = new MicroServer();
 		
-		ms.setDocName(System.getProperty("user.dir")+"/src/test/resources/"+ms.getDocName());
+		ms.setDocDir(System.getProperty("user.dir")+"/src/test/resources/");
+		
 		
 		when(msg1.getType()).thenReturn(Type.CONNECTED);
 		when(msg1.getOrder()).thenReturn(null);
@@ -209,7 +210,7 @@ public class MicroServerTest {
 		ms.start(serverComm);
 	
 
-		File inputFile = new File(ms.getDocName());
+		File inputFile = new File(ms.getDocDir()+ms.getDocName());
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
         Document doc = dBuilder.parse(inputFile);
