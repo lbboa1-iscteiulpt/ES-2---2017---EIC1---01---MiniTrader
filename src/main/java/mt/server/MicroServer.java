@@ -96,7 +96,6 @@ public class MicroServer implements MicroTraderServer {
 	@Override
 	public void start(ServerComm serverComm) {
 		serverComm.start();
-		
 		LOGGER.log(Level.INFO, "Starting Server...");
 
 		this.serverComm = serverComm;
@@ -280,8 +279,9 @@ public class MicroServer implements MicroTraderServer {
 	
 	private void logOrder(Order o) {
 		try {
-			Document doc;
+			LOGGER.log(Level.INFO, "Adding Order to XML File");
 			
+			Document doc;
 			File inputFile = new File(docName);
 			if(!inputFile.exists()){
 				inputFile.createNewFile();
