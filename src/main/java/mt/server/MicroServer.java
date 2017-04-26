@@ -85,7 +85,7 @@ public class MicroServer implements MicroTraderServer {
 	/**
 	 * Name of the XML file where the session will be saved
 	 */
-	private String docName = "MicroTraderPersistence(US) " +  System.currentTimeMillis() +".xml";
+	private String docName = "MicroTraderPersistence(AS) " +  System.currentTimeMillis() +".xml";
 	
 	/** The value is {@value #EMPTY} */
 	public static final int EMPTY = 0;
@@ -315,6 +315,9 @@ public class MicroServer implements MicroTraderServer {
 	        newOrder.setAttribute("Stock",o.getStock());
 	        newOrder.setAttribute("Units",String.valueOf(o.getNumberOfUnits()));
 	        newOrder.setAttribute("Price",String.valueOf(o.getPricePerUnit()));
+	        Element customer = doc.createElement("Customer");
+	        customer.appendChild(doc.createTextNode(o.getNickname()));
+	        newOrder.appendChild(customer);
 	        Node n = doc.getDocumentElement();
 	        n.appendChild(newOrder);
 	        Transformer transformer = TransformerFactory.newInstance().newTransformer();

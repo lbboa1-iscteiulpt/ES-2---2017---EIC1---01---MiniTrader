@@ -218,12 +218,11 @@ public class MicroServerTest {
         
         XPathFactory xpathFactory = XPathFactory.newInstance();
         XPath xpath = xpathFactory.newXPath();
-        XPathExpression expr = xpath.compile("/XML/Order/@Type");
+        XPathExpression expr = xpath.compile("/XML/Order/*");
         NodeList nl = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
         
-        assertEquals("Sell", nl.item(0).getFirstChild().getNodeValue());
-        assertEquals("Buy", nl.item(1).getFirstChild().getNodeValue());
-       
+        assertEquals("userA", nl.item(0).getFirstChild().getNodeValue());
+        assertEquals("userB", nl.item(1).getFirstChild().getNodeValue());
         
         
 	}
