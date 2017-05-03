@@ -220,9 +220,9 @@ public class MicroServerTest {
         XPath xpath = xpathFactory.newXPath();
         XPathExpression expr = xpath.compile("/XML/Order/*");
         NodeList nl = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
-        
-        assertEquals("userA", nl.item(0).getFirstChild().getNodeValue());
-        assertEquals("userB", nl.item(1).getFirstChild().getNodeValue());
+        assertNull(nl.item(0));
+        assertNull(nl.item(1));
+
         
         
 	}

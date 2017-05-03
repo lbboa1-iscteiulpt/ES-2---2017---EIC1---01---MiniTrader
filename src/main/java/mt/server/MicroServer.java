@@ -315,9 +315,6 @@ public class MicroServer implements MicroTraderServer {
 	        newOrder.setAttribute("Stock",o.getStock());
 	        newOrder.setAttribute("Units",String.valueOf(o.getNumberOfUnits()));
 	        newOrder.setAttribute("Price",String.valueOf(o.getPricePerUnit()));
-	        Element customer = doc.createElement("Customer");
-	        customer.appendChild(doc.createTextNode(o.getNickname()));
-	        newOrder.appendChild(customer);
 	        Node n = doc.getDocumentElement();
 	        n.appendChild(newOrder);
 	        Transformer transformer = TransformerFactory.newInstance().newTransformer();
