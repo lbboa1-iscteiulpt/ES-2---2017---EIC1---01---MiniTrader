@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="20131001" xmlns:xmi="http://www.omg.org/spec/XMI/20131001" xmlns:PapyrusJava="http://www.eclipse.org/papyrus/PapyrusJava/1" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:standard="http://www.eclipse.org/uml2/5.0.0/UML/Profile/Standard" xmlns:uml="http://www.eclipse.org/uml2/5.0.0/UML">
+  <uml:Model xmi:id="_zvhVsDAUEeeP1p6heo5PEw" name="RootElement">
+    <packagedElement xmi:type="uml:Package" xmi:id="_85wQoDAUEeeP1p6heo5PEw" name="ESII2017MiniTrader">
+      <packagedElement xmi:type="uml:Package" xmi:id="_87GUcDAUEeeP1p6heo5PEw" name="mt">
+        <packagedElement xmi:type="uml:Package" xmi:id="_87G7gDAUEeeP1p6heo5PEw" name="server">
+          <packagedElement xmi:type="uml:Class" xmi:id="_87IJoDAUEeeP1p6heo5PEw" name="MicroServer" visibility="public">
+            <ownedAttribute xmi:type="uml:Property" xmi:id="_89Ji4TAUEeeP1p6heo5PEw" name="LOGGER" visibility="public" isLeaf="true" isStatic="true" type="_89IUwjAUEeeP1p6heo5PEw" isUnique="false">
+              <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_89Ji4jAUEeeP1p6heo5PEw" name="defaultValue">
+                <language>JAVA</language>
+                <body>Logger.getLogger(MicroServer.class.getName())</body>
+              </defaultValue>
+            </ownedAttribute>
+            <ownedAttribute xmi:type="uml:Property" xmi:id="_89LYETAUEeeP1p6heo5PEw" name="serverComm" visibility="private" type="_89KJ8zAUEeeP1p6heo5PEw" isUnique="false"/>
+            <ownedAttribute xmi:type="uml:Property" xmi:id="_89MmMTAUEeeP1p6heo5PEw" name="orderMap" visibility="private" type="_89LYEjAUEeeP1p6heo5PEw" isUnique="false"/>
+            <ownedAttribute xmi:type="uml:Property" xmi:id="_89N0UTAUEeeP1p6heo5PEw" name="updatedOrders" visibility="private" type="_89MmMjAUEeeP1p6heo5PEw" isUnique="false"/>
+            <ownedAttribute xmi:type="uml:Property" xmi:id="_89T68DAUEeeP1p6heo5PEw" name="id" visibility="private" isStatic="true" isUnique="false">
+              <type xmi:type="uml:PrimitiveType" href="pathmap://PapyrusJava_LIBRARIES/JavaLibrary.uml#_7wRIABydEduyofBvg4RL2w"/>
+              <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_89T68TAUEeeP1p6heo5PEw" name="defaultValue">
+                <language>JAVA</language>
+                <body>1</body>
+              </defaultValue>
+            </ownedAttribute>
+            <ownedAttribute xmi:type="uml:Property" xmi:id="_89T68jAUEeeP1p6heo5PEw" name="EMPTY" visibility="public" isLeaf="true" isStatic="true" isUnique="false">
+              <type xmi:type="uml:PrimitiveType" href="pathmap://PapyrusJava_LIBRARIES/JavaLibrary.uml#_7wRIABydEduyofBvg4RL2w"/>
+              <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_89UiADAUEeeP1p6heo5PEw" name="defaultValue">
+                <language>JAVA</language>
+                <body>0</body>
+              </defaultValue>
+            </ownedAttribute>
+            <interfaceRealization xmi:type="uml:InterfaceRealization" xmi:id="_89FRcTAUEeeP1p6heo5PEw" name="MicroServer implements MicroTraderServer" client="_87IJoDAUEeeP1p6heo5PEw" supplier="_87JXwDAUEeeP1p6heo5PEw" contract="_87JXwDAUEeeP1p6heo5PEw"/>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89HtszAUEeeP1p6heo5PEw" name="main" specification="_89HGoTAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    ServerComm serverComm = new AnalyticsFilter(new ServerCommImpl());
+    MicroTraderServer server = new MicroServer();
+    server.start(serverComm);
+</body>
+            </ownedBehavior>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89WXMDAUEeeP1p6heo5PEw" name="MicroServer" specification="_89UiATAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    LOGGER.log(Level.INFO, &quot;Creating the server...&quot;);
+    orderMap = new HashMap&lt;String, Set&lt;Order>>();
+    updatedOrders = new HashSet&lt;>();
+</body>
+            </ownedBehavior>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89W-QDAUEeeP1p6heo5PEw" name="start" specification="_89WXMTAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    serverComm.start();
+    LOGGER.log(Level.INFO, &quot;Starting Server...&quot;);
+    this.serverComm = serverComm;
+    ServerSideMessage msg = null;
+    while ((msg = serverComm.getNextMessage()) != null) {
+        ServerSideMessage.Type type = msg.getType();
+        if (type == null) {
+            serverComm.sendError(null, &quot;Type was not recognized&quot;);
+            continue;
+        }
+        switch(type) {
+            case CONNECTED:
+                try {
+                    processUserConnected(msg);
+                } catch (ServerException e) {
+                    serverComm.sendError(msg.getSenderNickname(), e.getMessage());
+                }
+                break;
+            case DISCONNECTED:
+                processUserDisconnected(msg);
+                break;
+            case NEW_ORDER:
+                try {
+                    verifyUserConnected(msg);
+                    if (msg.getOrder().getServerOrderID() == EMPTY) {
+                        msg.getOrder().setServerOrderID(id++);
+                    }
+                    notifyAllClients(msg.getOrder());
+                    processNewOrder(msg);
+                } catch (ServerException e) {
+                    serverComm.sendError(msg.getSenderNickname(), e.getMessage());
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    LOGGER.log(Level.INFO, &quot;Shutting Down Server...&quot;);
+</body>
+            </ownedBehavior>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89aBkTAUEeeP1p6heo5PEw" name="verifyUserConnected" specification="_89YMYTAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    for (Entry&lt;String, Set&lt;Order>> entry : orderMap.entrySet()) {
+        if (entry.getKey().equals(msg.getSenderNickname())) {
+            return;
+        }
+    }
+    throw new ServerException(&quot;The user &quot; + msg.getSenderNickname() + &quot; is not connected.&quot;);
+</body>
+            </ownedBehavior>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89aooTAUEeeP1p6heo5PEw" name="processUserConnected" specification="_89aBkjAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    LOGGER.log(Level.INFO, &quot;Connecting client &quot; + msg.getSenderNickname() + &quot;...&quot;);
+    // verify if user is already connected
+    for (Entry&lt;String, Set&lt;Order>> entry : orderMap.entrySet()) {
+        if (entry.getKey().equals(msg.getSenderNickname())) {
+            throw new ServerException(&quot;The user &quot; + msg.getSenderNickname() + &quot; is already connected.&quot;);
+        }
+    }
+    // register the new user
+    orderMap.put(msg.getSenderNickname(), new HashSet&lt;Order>());
+    notifyClientsOfCurrentActiveOrders(msg);
+</body>
+            </ownedBehavior>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89bPsTAUEeeP1p6heo5PEw" name="notifyClientsOfCurrentActiveOrders" specification="_89aoojAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    List&lt;Order> ordersToSend = new ArrayList&lt;>();
+    // update the new registered user of all active orders
+    for (Entry&lt;String, Set&lt;Order>> entry : orderMap.entrySet()) {
+        Set&lt;Order> orders = entry.getValue();
+        for (Order order : orders) {
+            ordersToSend.add(order);
+        }
+    }
+    // sort the orders to send to clients by server id
+    Collections.sort(ordersToSend, new Comparator&lt;Order>() {
+
+        @Override
+        public int compare(Order o1, Order o2) {
+            return o1.getServerOrderID() &lt; o2.getServerOrderID() ? -1 : 1;
+        }
+    });
+    for (Order order : ordersToSend) {
+        serverComm.sendOrder(msg.getSenderNickname(), order);
+    }
+</body>
+            </ownedBehavior>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89b2wDAUEeeP1p6heo5PEw" name="processUserDisconnected" specification="_89bPsjAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    LOGGER.log(Level.INFO, &quot;Disconnecting client &quot; + msg.getSenderNickname() + &quot;...&quot;);
+    //remove the client orders
+    orderMap.remove(msg.getSenderNickname());
+    // notify all clients of current unfulfilled orders
+    for (Entry&lt;String, Set&lt;Order>> entry : orderMap.entrySet()) {
+        Set&lt;Order> orders = entry.getValue();
+        for (Order order : orders) {
+            serverComm.sendOrder(msg.getSenderNickname(), order);
+        }
+    }
+</body>
+            </ownedBehavior>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89cd0DAUEeeP1p6heo5PEw" name="processNewOrder" specification="_89b2wTAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    LOGGER.log(Level.INFO, &quot;Processing new order...&quot;);
+    Order o = msg.getOrder();
+    // save the order on map
+    saveOrder(o);
+    // if is buy order
+    if (o.isBuyOrder()) {
+        processBuy(msg.getOrder());
+    }
+    // if is sell order
+    if (o.isSellOrder()) {
+        processSell(msg.getOrder());
+    }
+    // notify clients of changed order
+    notifyClientsOfChangedOrders();
+    // remove all fulfilled orders
+    removeFulfilledOrders();
+    // reset the set of changed orders
+    updatedOrders = new HashSet&lt;>();
+</body>
+            </ownedBehavior>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89dr8jAUEeeP1p6heo5PEw" name="saveOrder" specification="_89dr8DAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    LOGGER.log(Level.INFO, &quot;Storing the new order...&quot;);
+    //save order on map
+    Set&lt;Order> orders = orderMap.get(o.getNickname());
+    orders.add(o);
+</body>
+            </ownedBehavior>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89eTAjAUEeeP1p6heo5PEw" name="processSell" specification="_89eTADAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    LOGGER.log(Level.INFO, &quot;Processing sell order...&quot;);
+    for (Entry&lt;String, Set&lt;Order>> entry : orderMap.entrySet()) {
+        for (Order o : entry.getValue()) {
+            if (o.isBuyOrder() &amp;&amp; o.getStock().equals(sellOrder.getStock()) &amp;&amp; o.getPricePerUnit() >= sellOrder.getPricePerUnit()) {
+                doTransaction(o, sellOrder);
+            }
+        }
+    }
+</body>
+            </ownedBehavior>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89e6ETAUEeeP1p6heo5PEw" name="processBuy" specification="_89eTAzAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    LOGGER.log(Level.INFO, &quot;Processing buy order...&quot;);
+    for (Entry&lt;String, Set&lt;Order>> entry : orderMap.entrySet()) {
+        for (Order o : entry.getValue()) {
+            if (o.isSellOrder() &amp;&amp; buyOrder.getStock().equals(o.getStock()) &amp;&amp; o.getPricePerUnit() &lt;= buyOrder.getPricePerUnit()) {
+                doTransaction(buyOrder, o);
+            }
+        }
+    }
+</body>
+            </ownedBehavior>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89fhITAUEeeP1p6heo5PEw" name="doTransaction" specification="_89e6EjAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    LOGGER.log(Level.INFO, &quot;Processing transaction between seller and buyer...&quot;);
+    if (buyOrder.getNumberOfUnits() >= sellerOrder.getNumberOfUnits()) {
+        buyOrder.setNumberOfUnits(buyOrder.getNumberOfUnits() - sellerOrder.getNumberOfUnits());
+        sellerOrder.setNumberOfUnits(EMPTY);
+    } else {
+        sellerOrder.setNumberOfUnits(sellerOrder.getNumberOfUnits() - buyOrder.getNumberOfUnits());
+        buyOrder.setNumberOfUnits(EMPTY);
+    }
+    updatedOrders.add(buyOrder);
+    updatedOrders.add(sellerOrder);
+</body>
+            </ownedBehavior>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89fhIzAUEeeP1p6heo5PEw" name="notifyClientsOfChangedOrders" specification="_89fhIjAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    LOGGER.log(Level.INFO, &quot;Notifying client about the changed order...&quot;);
+    for (Order order : updatedOrders) {
+        notifyAllClients(order);
+    }
+</body>
+            </ownedBehavior>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89gIMjAUEeeP1p6heo5PEw" name="notifyAllClients" specification="_89gIMDAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    LOGGER.log(Level.INFO, &quot;Notifying clients about the new order...&quot;);
+    if (order == null) {
+        throw new ServerException(&quot;There was no order in the message&quot;);
+    }
+    for (Entry&lt;String, Set&lt;Order>> entry : orderMap.entrySet()) {
+        serverComm.sendOrder(entry.getKey(), order);
+    }
+</body>
+            </ownedBehavior>
+            <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_89gvQTAUEeeP1p6heo5PEw" name="removeFulfilledOrders" specification="_89gvQDAUEeeP1p6heo5PEw">
+              <language>JAVA</language>
+              <body>
+    LOGGER.log(Level.INFO, &quot;Removing fulfilled orders...&quot;);
+    // remove fulfilled orders
+    for (Entry&lt;String, Set&lt;Order>> entry : orderMap.entrySet()) {
+        Iterator&lt;Order> it = entry.getValue().iterator();
+        while (it.hasNext()) {
+            Order o = it.next();
+            if (o.getNumberOfUnits() == EMPTY) {
+                it.remove();
+            }
+        }
+    }
+</body>
+            </ownedBehavior>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89HGoTAUEeeP1p6heo5PEw" name="main" visibility="public" isStatic="true" method="_89HtszAUEeeP1p6heo5PEw">
+              <ownedParameter xmi:type="uml:Parameter" xmi:id="_89HtsDAUEeeP1p6heo5PEw" name="args" type="_89F4gjAUEeeP1p6heo5PEw">
+                <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_89HtsTAUEeeP1p6heo5PEw"/>
+                <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_89HtsjAUEeeP1p6heo5PEw" value="*"/>
+              </ownedParameter>
+            </ownedOperation>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89UiATAUEeeP1p6heo5PEw" name="MicroServer" visibility="public" method="_89WXMDAUEeeP1p6heo5PEw"/>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89WXMTAUEeeP1p6heo5PEw" name="start" visibility="public" method="_89W-QDAUEeeP1p6heo5PEw">
+              <ownedParameter xmi:type="uml:Parameter" xmi:id="_89WXMjAUEeeP1p6heo5PEw" name="serverComm" type="_89KJ8zAUEeeP1p6heo5PEw"/>
+            </ownedOperation>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89YMYTAUEeeP1p6heo5PEw" name="verifyUserConnected" visibility="private" method="_89aBkTAUEeeP1p6heo5PEw" raisedException="_89YzcjAUEeeP1p6heo5PEw">
+              <ownedParameter xmi:type="uml:Parameter" xmi:id="_89YzcDAUEeeP1p6heo5PEw" name="msg" type="_89W-QTAUEeeP1p6heo5PEw"/>
+            </ownedOperation>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89aBkjAUEeeP1p6heo5PEw" name="processUserConnected" visibility="private" method="_89aooTAUEeeP1p6heo5PEw" raisedException="_89YzcjAUEeeP1p6heo5PEw">
+              <ownedParameter xmi:type="uml:Parameter" xmi:id="_89aooDAUEeeP1p6heo5PEw" name="msg" type="_89W-QTAUEeeP1p6heo5PEw"/>
+            </ownedOperation>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89aoojAUEeeP1p6heo5PEw" name="notifyClientsOfCurrentActiveOrders" visibility="private" method="_89bPsTAUEeeP1p6heo5PEw">
+              <ownedParameter xmi:type="uml:Parameter" xmi:id="_89bPsDAUEeeP1p6heo5PEw" name="msg" type="_89W-QTAUEeeP1p6heo5PEw"/>
+            </ownedOperation>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89bPsjAUEeeP1p6heo5PEw" name="processUserDisconnected" visibility="private" method="_89b2wDAUEeeP1p6heo5PEw">
+              <ownedParameter xmi:type="uml:Parameter" xmi:id="_89bPszAUEeeP1p6heo5PEw" name="msg" type="_89W-QTAUEeeP1p6heo5PEw"/>
+            </ownedOperation>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89b2wTAUEeeP1p6heo5PEw" name="processNewOrder" visibility="private" method="_89cd0DAUEeeP1p6heo5PEw" raisedException="_89YzcjAUEeeP1p6heo5PEw">
+              <ownedParameter xmi:type="uml:Parameter" xmi:id="_89b2wjAUEeeP1p6heo5PEw" name="msg" type="_89W-QTAUEeeP1p6heo5PEw"/>
+            </ownedOperation>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89dr8DAUEeeP1p6heo5PEw" name="saveOrder" visibility="private" method="_89dr8jAUEeeP1p6heo5PEw">
+              <ownedParameter xmi:type="uml:Parameter" xmi:id="_89dr8TAUEeeP1p6heo5PEw" name="o" type="_89cd0TAUEeeP1p6heo5PEw"/>
+            </ownedOperation>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89eTADAUEeeP1p6heo5PEw" name="processSell" visibility="private" method="_89eTAjAUEeeP1p6heo5PEw">
+              <ownedParameter xmi:type="uml:Parameter" xmi:id="_89eTATAUEeeP1p6heo5PEw" name="sellOrder" type="_89cd0TAUEeeP1p6heo5PEw"/>
+            </ownedOperation>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89eTAzAUEeeP1p6heo5PEw" name="processBuy" visibility="private" method="_89e6ETAUEeeP1p6heo5PEw">
+              <ownedParameter xmi:type="uml:Parameter" xmi:id="_89e6EDAUEeeP1p6heo5PEw" name="buyOrder" type="_89cd0TAUEeeP1p6heo5PEw"/>
+            </ownedOperation>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89e6EjAUEeeP1p6heo5PEw" name="doTransaction" visibility="private" method="_89fhITAUEeeP1p6heo5PEw">
+              <ownedParameter xmi:type="uml:Parameter" xmi:id="_89e6EzAUEeeP1p6heo5PEw" name="buyOrder" type="_89cd0TAUEeeP1p6heo5PEw"/>
+              <ownedParameter xmi:type="uml:Parameter" xmi:id="_89fhIDAUEeeP1p6heo5PEw" name="sellerOrder" type="_89cd0TAUEeeP1p6heo5PEw"/>
+            </ownedOperation>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89fhIjAUEeeP1p6heo5PEw" name="notifyClientsOfChangedOrders" visibility="private" method="_89fhIzAUEeeP1p6heo5PEw" raisedException="_89YzcjAUEeeP1p6heo5PEw"/>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89gIMDAUEeeP1p6heo5PEw" name="notifyAllClients" visibility="private" method="_89gIMjAUEeeP1p6heo5PEw" raisedException="_89YzcjAUEeeP1p6heo5PEw">
+              <ownedParameter xmi:type="uml:Parameter" xmi:id="_89gIMTAUEeeP1p6heo5PEw" name="order" type="_89cd0TAUEeeP1p6heo5PEw"/>
+            </ownedOperation>
+            <ownedOperation xmi:type="uml:Operation" xmi:id="_89gvQDAUEeeP1p6heo5PEw" name="removeFulfilledOrders" visibility="private" method="_89gvQTAUEeeP1p6heo5PEw"/>
+          </packagedElement>
+          <packagedElement xmi:type="uml:Interface" xmi:id="_87JXwDAUEeeP1p6heo5PEw" name="MicroTraderServer"/>
+        </packagedElement>
+      </packagedElement>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Package" xmi:id="_89FRcjAUEeeP1p6heo5PEw" name="java">
+      <packagedElement xmi:type="uml:Package" xmi:id="_89F4gDAUEeeP1p6heo5PEw" name="java">
+        <packagedElement xmi:type="uml:Package" xmi:id="_89F4gTAUEeeP1p6heo5PEw" name="lang">
+          <packagedElement xmi:type="uml:Class" xmi:id="_89F4gjAUEeeP1p6heo5PEw" name="String"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Package" xmi:id="_89IUwDAUEeeP1p6heo5PEw" name="util">
+          <packagedElement xmi:type="uml:Package" xmi:id="_89IUwTAUEeeP1p6heo5PEw" name="logging">
+            <packagedElement xmi:type="uml:Class" xmi:id="_89IUwjAUEeeP1p6heo5PEw" name="Logger"/>
+          </packagedElement>
+          <packagedElement xmi:type="uml:Class" xmi:id="_89LYEjAUEeeP1p6heo5PEw" name="Map"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_89MmMjAUEeeP1p6heo5PEw" name="Set"/>
+        </packagedElement>
+      </packagedElement>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Package" xmi:id="_89KJ8DAUEeeP1p6heo5PEw" name="importedTypes">
+      <packagedElement xmi:type="uml:Package" xmi:id="_89KJ8TAUEeeP1p6heo5PEw" name="mt">
+        <packagedElement xmi:type="uml:Package" xmi:id="_89KJ8jAUEeeP1p6heo5PEw" name="comm">
+          <packagedElement xmi:type="uml:Class" xmi:id="_89KJ8zAUEeeP1p6heo5PEw" name="ServerComm"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_89W-QTAUEeeP1p6heo5PEw" name="ServerSideMessage"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Package" xmi:id="_89YzcTAUEeeP1p6heo5PEw" name="exception">
+          <packagedElement xmi:type="uml:Class" xmi:id="_89YzcjAUEeeP1p6heo5PEw" name="ServerException"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Class" xmi:id="_89cd0TAUEeeP1p6heo5PEw" name="Order"/>
+      </packagedElement>
+    </packagedElement>
+    <profileApplication xmi:type="uml:ProfileApplication" xmi:id="_86R1EDAUEeeP1p6heo5PEw">
+      <eAnnotations xmi:type="ecore:EAnnotation" xmi:id="_86R1ETAUEeeP1p6heo5PEw" source="http://www.eclipse.org/uml2/2.0.0/UML">
+        <references xmi:type="ecore:EPackage" href="http://www.eclipse.org/papyrus/PapyrusJava/1#/"/>
+      </eAnnotations>
+      <appliedProfile xmi:type="uml:Profile" href="pathmap://PapyrusJava_PROFILES/PapyrusJava.profile.uml#_j9REUByGEduN1bTiWJ0lyw"/>
+    </profileApplication>
+    <profileApplication xmi:type="uml:ProfileApplication" xmi:id="_86bmEDAUEeeP1p6heo5PEw">
+      <eAnnotations xmi:type="ecore:EAnnotation" xmi:id="_86bmETAUEeeP1p6heo5PEw" source="http://www.eclipse.org/uml2/2.0.0/UML">
+        <references xmi:type="ecore:EPackage" href="http://www.eclipse.org/papyrus/Codegen/1#/"/>
+      </eAnnotations>
+      <appliedProfile xmi:type="uml:Profile" href="pathmap://Codegen_PROFILES/Codegen.profile.uml#_fPDsIBa-EearhdjjJ6cVzQ"/>
+    </profileApplication>
+    <profileApplication xmi:type="uml:ProfileApplication" xmi:id="_8645EDAUEeeP1p6heo5PEw">
+      <eAnnotations xmi:type="ecore:EAnnotation" xmi:id="_865gIDAUEeeP1p6heo5PEw" source="http://www.eclipse.org/uml2/2.0.0/UML">
+        <references xmi:type="ecore:EPackage" href="http://www.eclipse.org/uml2/5.0.0/UML/Profile/Standard#/"/>
+      </eAnnotations>
+      <appliedProfile xmi:type="uml:Profile" href="pathmap://UML_PROFILES/Standard.profile.uml#_0"/>
+    </profileApplication>
+  </uml:Model>
+  <PapyrusJava:External xmi:id="_89FRcDAUEeeP1p6heo5PEw" name="MicroTraderServer" base_Classifier="_87JXwDAUEeeP1p6heo5PEw"/>
+  <PapyrusJava:External xmi:id="_89HGoDAUEeeP1p6heo5PEw" name="java.lang.String" base_Classifier="_89F4gjAUEeeP1p6heo5PEw"/>
+  <PapyrusJava:External xmi:id="_89Ji4DAUEeeP1p6heo5PEw" name="java.util.logging.Logger" base_Classifier="_89IUwjAUEeeP1p6heo5PEw"/>
+  <PapyrusJava:External xmi:id="_89LYEDAUEeeP1p6heo5PEw" name="mt.comm.ServerComm" base_Classifier="_89KJ8zAUEeeP1p6heo5PEw"/>
+  <PapyrusJava:External xmi:id="_89MmMDAUEeeP1p6heo5PEw" name="java.util.Map" base_Classifier="_89LYEjAUEeeP1p6heo5PEw"/>
+  <PapyrusJava:External xmi:id="_89N0UDAUEeeP1p6heo5PEw" name="java.util.Set" base_Classifier="_89MmMjAUEeeP1p6heo5PEw"/>
+  <standard:Create xmi:id="_89VwIDAUEeeP1p6heo5PEw" base_BehavioralFeature="_89UiATAUEeeP1p6heo5PEw"/>
+  <PapyrusJava:External xmi:id="_89YMYDAUEeeP1p6heo5PEw" name="mt.comm.ServerSideMessage" base_Classifier="_89W-QTAUEeeP1p6heo5PEw"/>
+  <PapyrusJava:External xmi:id="_89aBkDAUEeeP1p6heo5PEw" name="mt.exception.ServerException" base_Classifier="_89YzcjAUEeeP1p6heo5PEw"/>
+  <PapyrusJava:External xmi:id="_89dE4DAUEeeP1p6heo5PEw" name="mt.Order" base_Classifier="_89cd0TAUEeeP1p6heo5PEw"/>
+</xmi:XMI>
