@@ -61,6 +61,24 @@ public class MicroServerTest {
 	@Mock
 	private ServerSideMessage msg11;
 	
+	@Mock
+	private ServerSideMessage msg12;
+	
+	@Mock
+	private ServerSideMessage msg13;
+	
+	@Mock
+	private ServerSideMessage msg14;
+	
+	@Mock
+	private ServerSideMessage msg15;
+	
+	@Mock
+	private ServerSideMessage msg16;
+	
+	@Mock
+	private ServerSideMessage msg17;
+	
 	@Before
 	public void setup(){
 		ms = new MicroServer();
@@ -70,7 +88,7 @@ public class MicroServerTest {
 		when(msg1.getSenderNickname()).thenReturn("userA");
 		
 		when(msg2.getType()).thenReturn(Type.NEW_ORDER);
-		when(msg2.getOrder()).thenReturn(Order.createSellOrder("userA", "MSFT", 10, 20.0));
+		when(msg2.getOrder()).thenReturn(Order.createSellOrder("userA", "MSFT", 20, 20.0));
 		when(msg2.getSenderNickname()).thenReturn("userA");
 		
 		when(msg3.getType()).thenReturn(Type.CONNECTED);
@@ -78,7 +96,7 @@ public class MicroServerTest {
 		when(msg3.getSenderNickname()).thenReturn("userB");
 		
 		when(msg4.getType()).thenReturn(Type.NEW_ORDER);
-		when(msg4.getOrder()).thenReturn(Order.createBuyOrder("userB", "MSFT", 5, 21.0));
+		when(msg4.getOrder()).thenReturn(Order.createBuyOrder("userB", "MSFT", 10, 21.0));
 		when(msg4.getSenderNickname()).thenReturn("userB");
 		
 		when(msg5.getType()).thenReturn(Type.DISCONNECTED);
@@ -103,8 +121,35 @@ public class MicroServerTest {
 	
 		when(msg10.getType()).thenReturn(Type.NEW_ORDER);
 		when(msg10.getOrder()).thenReturn(null);
-		when(msg10.getSenderNickname()).thenReturn("userA");	
+		when(msg10.getSenderNickname()).thenReturn("userA");
 		
+		when(msg11.getType()).thenReturn(Type.NEW_ORDER);
+		when(msg11.getOrder()).thenReturn(Order.createSellOrder("userB", "ISCTE", 15, 21.0));
+		when(msg11.getSenderNickname()).thenReturn("userB");
+		
+		when(msg12.getType()).thenReturn(Type.NEW_ORDER);
+		when(msg12.getOrder()).thenReturn(Order.createSellOrder("userB", "ISCTE", 5, 21.0));
+		when(msg12.getSenderNickname()).thenReturn("userB");
+		
+		when(msg13.getType()).thenReturn(Type.NEW_ORDER);
+		when(msg13.getOrder()).thenReturn(Order.createSellOrder("userB", "ISCTE2", 15, 21.0));
+		when(msg13.getSenderNickname()).thenReturn("userB");
+		
+		when(msg14.getType()).thenReturn(Type.NEW_ORDER);
+		when(msg14.getOrder()).thenReturn(Order.createSellOrder("userB", "ISCTE3", 15, 21.0));
+		when(msg14.getSenderNickname()).thenReturn("userB");
+		
+		when(msg15.getType()).thenReturn(Type.NEW_ORDER);
+		when(msg15.getOrder()).thenReturn(Order.createSellOrder("userB", "ISCTE4", 15, 21.0));
+		when(msg15.getSenderNickname()).thenReturn("userB");
+		
+		when(msg16.getType()).thenReturn(Type.NEW_ORDER);
+		when(msg16.getOrder()).thenReturn(Order.createSellOrder("userB", "ISCTE5", 15, 21.0));
+		when(msg16.getSenderNickname()).thenReturn("userB");
+		
+		when(msg17.getType()).thenReturn(Type.NEW_ORDER);
+		when(msg17.getOrder()).thenReturn(Order.createSellOrder("userB", "ISCTE6", 15, 21.0));
+		when(msg17.getSenderNickname()).thenReturn("userB");
 		
 	}
 	
@@ -127,7 +172,7 @@ public class MicroServerTest {
 		
 		ms.start(serverComm);
 		
-		verify(serverComm, atLeastOnce()).sendOrder("userB", Order.createSellOrder("userA", "MSFT", 5, 20.0) );
+		verify(serverComm, atLeastOnce()).sendOrder("userB", Order.createSellOrder("userA", "MSFT", 10, 20.0) );
 		verify(serverComm, atLeastOnce()).sendOrder("userB", Order.createBuyOrder("userB", "MSFT", 0, 21.0) );
 	}
 	
@@ -172,7 +217,7 @@ public class MicroServerTest {
 		when(serverComm.getNextMessage()).thenReturn(msg1).thenReturn(msg2).thenReturn(msg3).thenReturn(msg4).thenReturn(msg5).thenReturn(msg6).thenReturn(null);
 		ms.start(serverComm);
 		
-		verify(serverComm, atLeastOnce()).sendOrder("userA", Order.createSellOrder("userA", "MSFT", 5, 20.0));
+		verify(serverComm, atLeastOnce()).sendOrder("userA", Order.createSellOrder("userA", "MSFT", 10, 20.0));
 	}
 	
 	@Test
@@ -181,6 +226,36 @@ public class MicroServerTest {
 		ms.start(serverComm);
 		
 		verify(serverComm, atLeastOnce()).sendError(msg1.getSenderNickname(), "The user " + msg1.getSenderNickname() + " is already connected.");
+	}
+	
+	@Test
+	public void testBuisenessRule1() throws Exception{
+		when(serverComm.getNextMessage()).thenReturn(msg3).thenReturn(msg8).thenReturn(msg11).thenReturn(null);
+		ms.start(serverComm);
+		
+		verify(serverComm, atLeastOnce()).sendError(msg11.getSenderNickname(), "You can't to issue sell orders for your own buy orders and vice versa");
+
+	}
+	
+	@Test
+	public void testBuisenessRule2() throws Exception{
+		System.out.println("TESTE BR2");
+		when(serverComm.getNextMessage()).thenReturn(msg3).thenReturn(msg11).thenReturn(msg13).thenReturn(msg14).thenReturn(msg15).thenReturn(msg16).thenReturn(msg17).thenReturn(null);
+		ms.start(serverComm);
+		
+		verify(serverComm, atLeastOnce()).sendError(msg11.getSenderNickname(), "Sellers cannot have more than five sell orders unfulfilled at any time");
+
+	}
+	
+	@Test
+	public void testBuisenessRule3() throws Exception{
+		System.out.println("TESTE BR3");
+
+		when(serverComm.getNextMessage()).thenReturn(msg3).thenReturn(msg12).thenReturn(null);
+		ms.start(serverComm);
+		
+		verify(serverComm, atLeastOnce()).sendError(msg11.getSenderNickname(), "A single order quantity (buy or sell order) can never be lower than 10 units");
+
 	}
 	
 //	@Test
