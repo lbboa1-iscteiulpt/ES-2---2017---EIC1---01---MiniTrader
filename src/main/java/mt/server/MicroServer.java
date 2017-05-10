@@ -132,7 +132,6 @@ public class MicroServer implements MicroTraderServer {
 						if(msg.getOrder().getServerOrderID() == EMPTY){
 							msg.getOrder().setServerOrderID(id++);
 						}
-						notifyAllClients(msg.getOrder());
 						processNewOrder(msg);
 					} catch (ServerException e) {
 						serverComm.sendError(msg.getSenderNickname(), e.getMessage());
@@ -247,33 +246,33 @@ public class MicroServer implements MicroTraderServer {
 		LOGGER.log(Level.INFO, "Processing new order...");
 
 		Order o = msg.getOrder();
-		
+
 		// save the order on map
-		saveOrder(o);
-		
-		// save the order on XML file
-		
-		logOrder(o);
+		boolean saveOrderSucess = saveOrder(o);
+		if(saveOrderSucess){
+			notifyAllClients(msg.getOrder());
 
-		// if is buy order
-		if (o.isBuyOrder()) {
-			processBuy(msg.getOrder());
+			logOrder(o);
+
+			// if is buy order
+			if (o.isBuyOrder()) {
+				processBuy(msg.getOrder());
+			}
+
+			// if is sell order
+			if (o.isSellOrder()) {
+				processSell(msg.getOrder());
+			}
+
+			// notify clients of changed order
+			notifyClientsOfChangedOrders();
+
+			// remove all fulfilled orders
+			removeFulfilledOrders();
+
+			// reset the set of changed orders
+			updatedOrders = new HashSet<>();
 		}
-		
-		// if is sell order
-		if (o.isSellOrder()) {
-			processSell(msg.getOrder());
-		}
-
-		// notify clients of changed order
-		notifyClientsOfChangedOrders();
-
-		// remove all fulfilled orders
-		removeFulfilledOrders();
-
-		// reset the set of changed orders
-		updatedOrders = new HashSet<>();
-
 	}
 	
 	/**
@@ -339,12 +338,17 @@ public class MicroServer implements MicroTraderServer {
 	 * @param o
 	 * 			the order to be stored on map
 	 */
-	private void saveOrder(Order o) {
+	private boolean saveOrder(Order o) {
 		LOGGER.log(Level.INFO, "Storing the new order...");
 		
-		//save order on map
-		Set<Order> orders = orderMap.get(o.getNickname());
-		orders.add(o);		
+		if(o.getNumberOfUnits()>=10){
+			//save order on map
+				Set<Order> orders = orderMap.get(o.getNickname());
+				orders.add(o);
+				return true;
+		}
+		serverComm.sendError(o.getNickname(), "A single order quantity (buy or sell order) can never be lower than 10 units");
+		return false;
 	}
 
 	/**
