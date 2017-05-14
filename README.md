@@ -4,7 +4,7 @@ Video Entrega Intermédia:
 https://www.youtube.com/watch?v=aA1Qp-S-PHM&feature=youtu.be
 
 Video das 3 variantes do Servidor:
-//TODO
+https://www.youtube.com/watch?v=-cPPV2un9RM&feature=youtu.be
 
 
 O Trabalho foi resolvido na sua integra, ou seja:
