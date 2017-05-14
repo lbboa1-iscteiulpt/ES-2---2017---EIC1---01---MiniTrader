@@ -268,7 +268,7 @@ public class MicroServer implements MicroTraderServer {
 			}
 
 
-			if(sellOrderCount < 5){
+			if(sellOrderCount < 5 || o.isBuyOrder()){
 				orders.add(o);
 				return true;
 			}else{
